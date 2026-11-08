@@ -10,15 +10,10 @@
     GCLOUD_HOSTED_LOGS_ID: "{{ grafana_loki_username }}"
     GCLOUD_RW_API_KEY: "{{ grafana_cloud_gcloud_rw_api_key }}"
   args:
-    creates: /etc/systemd/system/alloy.service
+    creates: /usr/lib/systemd/system/alloy.service
 
 - name: Deploy Alloy config file
   ansible.builtin.template:
     src: config.alloy.j2
     dest: /etc/alloy/config.alloy
-
-- name: Restart Alloy
-  ansible.builtin.systemd_service:
-    name: alloy.service
-    state: restarted
-    enabled: true
+  notify: Restart Alloy
