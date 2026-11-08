@@ -58,3 +58,23 @@ All VMs are assumed to be running Alma Linux 10 (or RHEL compatible OS).
     ```
     `--limit` is optional. 
 
+## Connecting to Kubernetes
+
+As a prerequisite, export the Kubeconfig:
+```
+export KUBECONFIG=$(ls ~/.kube/configs/*.yaml 2>/dev/null | tr '\n' ':')
+```
+Move all files from other locations on your machine (if you have them) to
+`~/.kube/configs/`, or add the locations to `KUBECONFIG` with a `:` separator.
+
+Then, simply use this command to switch config:
+```bash
+kubectl config use-context [host]
+```
+
+You are now connected to the cluster.
+
+IMPORTANT: this is meant to control single-node clusters, not multi-node setups.
+Each machine you configue (see "Onboarding a new VM") will spin up its own
+cluster, which is odd but works for me.
+

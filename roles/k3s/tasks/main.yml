@@ -1,0 +1,56 @@
+- name: Ensure kernel-modules-extra installed
+  ansible.builtin.dnf:
+    name: kernel-modules-extra
+    state: present
+  register: kmod_install
+
+- name: Reboot to apply matching kernel modules
+  ansible.builtin.reboot:
+  when: kmod_install.changed
+
+- name: Load br_netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+    persistent: present
+
+- name: Ensure bridge netfilter sysctls are set
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "1"
+    state: present
+    reload: true
+  loop:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+    - net.ipv4.ip_forward
+
+- name: Install K3s
+  ansible.builtin.include_role:
+    name: xanmanning.k3s
+  vars:
+    k3s_control_node: true
+    k3s_channel: stable
+    k3s_server:
+      bind-address: "{{ ansible_host }}"
+      tls-san: "{{ ansible_host}} "
+
+- name: Fetch kubeconfig
+  ansible.builtin.fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "~/.kube/configs/{{ inventory_hostname }}.yaml"
+    flat: true
+
+- name: Point kubeconfig at tailscale address
+  delegate_to: localhost
+  ansible.builtin.replace:
+    path: "~/.kube/configs/{{ inventory_hostname }}.yaml" 
+    regexp: 'https://127\.0\.0\.1:6443'
+    replace: "https://{{ ansible_host }}:6443"
+
+- name: Rename context to hostname
+  delegate_to: localhost
+  ansible.builtin.replace:
+    path: ~/.kube/configs/{{ inventory_hostname }}.yaml
+    regexp: '(name|cluster|user): default'
+    replace: '\1: {{ inventory_hostname }}'

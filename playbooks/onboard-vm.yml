@@ -4,3 +4,5 @@
     ansible_user: root
   roles:
    - grafana
+   - k3s
+   - firewall

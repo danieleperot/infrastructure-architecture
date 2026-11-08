@@ -1,3 +1,7 @@
 ---
+roles:
+  - name: xanmanning.k3s
+
 collections:
   - name: artis3n.tailscale
+  - name: ansible.posix
