@@ -1,0 +1,4 @@
+- name: Nodes config
+  hosts: nodes
+  roles:
+   - common

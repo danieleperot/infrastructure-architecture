@@ -1,0 +1,41 @@
+- name: Configure Tailscale
+  hosts: nodes
+  gather_facts: true
+  vars:
+    ansible_host: "{{ bootstrap_host }}"
+    ansible_user: root
+  pre_tasks:
+    - name: Check if host is already reachable over tailscale
+      command: tailscale ping -c 1 {{ inventory_hostname }}
+      delegate_to: localhost
+      register: ts_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Skip host if already on tailnet
+      meta: end_host
+      when: ts_check.rc == 0
+
+    - name: Set the correct hostname
+      ansible.builtin.hostname:
+        name: "{{ hostname }}"
+  roles:
+    - role: artis3n.tailscale.machine
+      tailscale_authkey: "{{ tailscale_auth_key }}"
+      tailscale_args: "--ssh"
+      tailscale_node_hostname_short: "{{ hostname }}"
+
+- name: Disable SSH access
+  hosts: nodes
+  vars:
+    ansible_user: root
+  tasks:
+    - name: Verify access via Tailscale
+      ping: 
+      register: ts_access
+    - name: Disable SSHD so that only Tailscale can be used
+      when: ts_access.ping == "pong"
+      ansible.builtin.systemd_service:
+        name: sshd.service
+        state: stopped
+        enabled: false

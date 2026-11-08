@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: vault-check
+        name: Ensure vault files are encrypted
+        entry: "bash -c 'for f in \"$@\"; do head -c 15 \"$f\" | grep -q \"^\\$ANSIBLE_VAULT\" || { echo \"Not encrypted: $f\"; exit 1; }; done' --"
+        language: system
+        files: '(^|inventories/.*/)(group_vars|host_vars)/.*\.yml$'
