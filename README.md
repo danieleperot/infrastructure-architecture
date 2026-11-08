@@ -51,3 +51,10 @@ All VMs are assumed to be running Alma Linux 10 (or RHEL compatible OS).
     ```bash
     ansible-playbook playbooks/tailscale.yml --limit [host]
     ```
+    `--limit` is optional. 
+4. Next, start onboarding the node by configuring the rest of the services:
+    ```bash
+    ansible-playbook playbooks/onboard-vm.yml --limit [host]
+    ```
+    `--limit` is optional. 
+

@@ -1,4 +1,6 @@
 - name: Nodes config
   hosts: nodes
+  vars:
+    ansible_user: root
   roles:
-   - common
+   - grafana

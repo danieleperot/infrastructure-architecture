@@ -1,0 +1,24 @@
+- name: Install Alloy
+  ansible.builtin.shell: |
+    curl -fsSL https://storage.googleapis.com/cloud-onboarding/alloy/scripts/install-linux.sh | sh
+  environment:
+    ARCH: amd64
+    GCLOUD_HOSTED_METRICS_URL: "{{ grafana_cloud_prometheus }}"
+    GCLOUD_HOSTED_METRICS_ID: "{{ grafana_prometheus_username }}"
+    GCLOUD_SCRAPE_INTERVAL: "60s"
+    GCLOUD_HOSTED_LOGS_URL: "{{ grafana_cloud_loki }}"
+    GCLOUD_HOSTED_LOGS_ID: "{{ grafana_loki_username }}"
+    GCLOUD_RW_API_KEY: "{{ grafana_cloud_gcloud_rw_api_key }}"
+  args:
+    creates: /etc/systemd/system/alloy.service
+
+- name: Deploy Alloy config file
+  ansible.builtin.template:
+    src: config.alloy.j2
+    dest: /etc/alloy/config.alloy
+
+- name: Restart Alloy
+  ansible.builtin.systemd_service:
+    name: alloy.service
+    state: restarted
+    enabled: true
